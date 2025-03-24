@@ -3,7 +3,7 @@
 ## Descrição
 Este projeto implementa um sistema de Retrieval-Augmented Generation (RAG) utilizando **FastAPI** e **SentenceTransformers** para gerar respostas baseadas em documentos pré-definidos. A API realiza a busca no conteúdo mais relevante e gera respostas com o modelo **Groq**.
 
-**Aviso: Este projeto está em estado inicial e pode conter funcionalidades incompletas ou instáveis.**
+**⚠ Aviso: Este projeto está em estado inicial e pode conter funcionalidades incompletas ou instáveis.**
 
 ## Setup Inicial
 
