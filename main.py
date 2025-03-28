@@ -1,48 +1,53 @@
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer, util
-from dotenv import load_dotenv
 from groq import Groq
-
-load_dotenv()
-
-client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+from embedding import PDFProcessor
+from sentence_transformers import util
 
 app = FastAPI()
-model = SentenceTransformer('All-MiniLM-L6-v2')
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
-documents = [
-    {'id': 1, 'text': 'Pelé is the best soccer player'},
-    {'id': 2, 'text': 'Watermelons are blue'},
-    {'id': 3, 'text': 'Brazil has a population of 200 million people'},
-    {'id': 4, 'text': 'Lemon juice cures hiccups'},
-]
-
-doc_embeddings = {
-    doc['id']: model.encode(doc['text'], convert_to_tensor=True) for doc in documents
-}
-
-class QueryRag(BaseModel):
+class QueryRequest(BaseModel):
     query: str
+    pdf_path: str
 
-@app.post('/query')
-async def query_rag(request: QueryRag):
-    query_embedding = model.encode(request.query, convert_to_tensor=True)
-    best_doc, best_score = {}, float('-inf')
+class ResponseModel(BaseModel):
+    answer: str
+    source: dict
+    score: float
 
-    for doc in documents:
-        score = util.cos_sim(query_embedding, doc_embeddings[doc['id']])
-        if score > best_score:
-            best_score, best_doc = score, doc
-
-    prompt = f"You are an AI assistant that must provide responses based ONLY on this document: {best_doc['text']}\n"
-    
+@app.post('/query', response_model=ResponseModel)
+async def handle_query(request: QueryRequest):
     try:
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
+        vectorstore = PDFProcessor.process(request.pdf_path)
+        query_embed = PDFProcessor._embeddings.embed_query(request.query)
+        
+        best_score = -1
+        best_doc = None
+        for doc in vectorstore.documents:
+            doc_embed = PDFProcessor._embeddings.embed_query(doc.page_content)
+            score = util.cos_sim(query_embed, doc_embed)
+            if score > best_score:
+                best_score = score
+                best_doc = doc
+        
+        if not best_doc:
+            raise HTTPException(status_code=404, detail="No relevant document found")
+        
+        completion = client.chat.completions.create(
+            messages=[{
+                "role": "user",
+                "content": f"Document: {best_doc.page_content}\n\nQuestion: {request.query}"
+            }],
+            model="llama3-70b-8192"
         )
-        return chat_completion.choices[0].message.content
+        
+        return ResponseModel(
+            answer=completion.choices[0].message.content,
+            source=best_doc.metadata,
+            score=float(best_score[0][0])
+        )
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) 
