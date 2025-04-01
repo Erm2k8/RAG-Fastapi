@@ -7,19 +7,31 @@ Este projeto implementa um sistema de Retrieval-Augmented Generation (RAG) utili
 
 ## Setup Inicial
 
-1. Clone o repositório e instale as dependências:
+1. Clone o repositório
     ```bash
     git clone https://github.com/Erm2k8/rag-fastapi.git
     cd rag-fastapi
-    pip install -r requirements.txt
     ```
 
-2. Crie o arquivo `.env` com a chave da API:
+2. Crie um ambiente virtual e instale as dependências
+    ```bash
+    python -m venv venv
+    venv\Scripts\activate
+    python -m pip install -r requirements.txt
+    ```
+
+3. Crie o arquivo `.env` com a chave da API:
     ```bash
     GROQ_API_KEY=your_api_key
     ```
 
-3. Execute o servidor:
+4. Execute o servidor:
     ```bash
+    cd app
     uvicorn main:app --reload
+    ```
+
+5. Acesse o endpoint de documentação para testar a API:
+    ```bash
+    http://localhost:8000/docs
     ```
