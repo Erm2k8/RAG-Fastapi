@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from typing import Annotated
 from services.query import QueryService
@@ -23,13 +24,13 @@ async def handle_query(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
-@router.post("/files/")
-async def create_file(file: Annotated[bytes, File()]):
-    return {"file_size": len(file)}
+@router.post("/upload-multi-files/")
+async def create_upload_file(files: list[UploadFile]):
+    for file in files:
+        file_path = os.path.join("data", "documents", file.filename)
+        with open(file_path, "wb") as out_file:
+            content = await file.read()
+            out_file.write(content)
 
-@router.post("/uploadfile/")
-async def create_upload_file(file: UploadFile):
-    return {"filename": file.filename}
-
+    return {"files": [file.filename for file in files]}
