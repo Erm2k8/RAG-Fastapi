@@ -20,15 +20,26 @@ class QueryService:
         
         if not best_doc:
             raise ValueError("No relevant document found")
-        
         completion = self.client.chat.completions.create(
             messages=[{
                 "role": "user",
-                "content": f"Document: {best_doc.page_content}\n\nQuestion: {query}"
+                "content": f"""
+                    INSTRUCTIONS:
+                    1. Base your answer STRICTLY on this document: "{best_doc.page_content}"
+                    2. Respond in the SAME LANGUAGE as the question: '{query}'
+                    3. If the document doesn't contain relevant information, say: "I cannot answer as this information is not in the provided document."
+                    
+                    QUESTION: {query}
+                    
+                    IMPORTANT:
+                    - Prioritize direct quotes from the document when possible
+                    - Keep answers concise yet complete
+                    - Do not extrapolate or add information not in the document
+                """
             }],
             model="llama3-70b-8192"
         )
-        
+                
         return {
             "answer": completion.choices[0].message.content,
             "source": best_doc.metadata,
