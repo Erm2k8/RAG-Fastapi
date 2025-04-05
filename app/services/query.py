@@ -1,5 +1,5 @@
 from sentence_transformers import util
-from core.processors import PDFProcessor
+from utils.pdf_processor import PDFProcessor
 from groq import Groq
 import os
 

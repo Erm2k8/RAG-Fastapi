@@ -1,4 +1,4 @@
-from core.processors import PDFProcessor
+from utils.pdf_processor import PDFProcessor
 
 class DocumentService:
     @staticmethod
