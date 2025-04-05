@@ -1,9 +1,12 @@
 from fastapi import FastAPI
-from api.v1.routes import router as v1_router
+from api.api_router import api_router
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="RAG-FAST")
-    app.include_router(v1_router, prefix="/v1")
+    app = FastAPI(
+        title="RAG-FAST",
+        version="0.1.0",
+    )
+    app.include_router(api_router, prefix="/v1")
     return app
 
 app = create_app()
