@@ -1,7 +1,8 @@
+chromadb==1.0.0
 fastapi==0.115.12
-groq==0.20.0
-langchain==0.3.22
-langchain_community==0.3.20
-langchain_huggingface==0.1.2
-pydantic==2.11.1
+groq==0.22.0
+langchain==0.3.23
+langchain_community==0.3.21
+pydantic==2.11.2
 sentence_transformers==3.4.1
+SQLAlchemy==2.0.40
