@@ -1,8 +1,9 @@
 chromadb==1.0.0
-fastapi==0.115.12
+fastapi==0.115.9
 groq==0.22.0
 langchain==0.3.23
 langchain_community==0.3.21
 pydantic==2.11.2
 sentence_transformers==3.4.1
 SQLAlchemy==2.0.40
+python-multipart==0.0.20
