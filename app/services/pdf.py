@@ -7,7 +7,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 from core.database import Document, DatabaseManager
 
-class PDFProcessor:
+class PDFService:
     def __init__(self):
         os.makedirs("./data/vectors", exist_ok=True)
         

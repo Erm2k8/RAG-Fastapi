@@ -4,7 +4,7 @@ import os
 from services.query import QueryService
 from .schemas import QueryRequest, ResponseModel
 from .dependencies import get_query_service
-from services.pdf_processor import PDFProcessor
+from services.pdf import PDFService
 from core.database import DatabaseManager, Document
 
 router = APIRouter()
@@ -39,7 +39,7 @@ async def upload_file(files: list[UploadFile]):
             with open(file_path, "wb") as buffer:
                 content = await file.read()
                 buffer.write(content)
-            processor = PDFProcessor()
+            processor = PDFService()
             processor.process(file_path)
         return {
             "filename": [file.filename for file in files],
@@ -52,7 +52,7 @@ async def upload_file(files: list[UploadFile]):
 @router.post("/repair/")
 async def repair_document(pdf_path: str):
     try:
-        processor = PDFProcessor()
+        processor = PDFService()
         abs_path = os.path.join("data", "documents", pdf_path)
         if not os.path.exists(abs_path):
             raise HTTPException(status_code=404, detail="File not found")

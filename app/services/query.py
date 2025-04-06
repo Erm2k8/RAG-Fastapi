@@ -2,14 +2,14 @@ import os
 from typing import List, Dict
 import numpy as np
 from sentence_transformers import util
-from services.pdf_processor import PDFProcessor
+from services.pdf import PDFService
 from core.database import DatabaseManager, QueryCache, Document
 from groq import Groq
 
 class QueryService:
     def __init__(self):
         self.client = Groq(api_key=os.getenv('GROQ_API_KEY'))
-        self.pdf_processor = PDFProcessor()
+        self.pdf_processor = PDFService()
         self.db_manager = DatabaseManager()
 
     def _get_cached_response(self, query: str, pdf_hash: str) -> Dict:
