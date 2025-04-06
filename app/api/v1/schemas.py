@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from enum import Enum
+from typing import List
 
 class QueryRequest(BaseModel):
     query: str
@@ -7,5 +7,5 @@ class QueryRequest(BaseModel):
 
 class ResponseModel(BaseModel):
     answer: str
-    source: dict
-    score: float
+    sources: List[dict]
+    scores: List[float]
