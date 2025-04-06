@@ -13,12 +13,13 @@ class PDFProcessor:
         
         self.chroma_client = chromadb.PersistentClient(path="./data/vectors/")
         self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
+            model_name="paraphrase-multilingual-mpnet-base-v2"
         )
         self.db_manager = DatabaseManager()
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
+            chunk_size=800,
+            chunk_overlap=300,
+            separators=["\n\n", "\n", ". ", " ", ""],
             length_function=len
         )
 
@@ -55,7 +56,7 @@ class PDFProcessor:
             chunks = self.text_splitter.split_documents(pages)
             chunk_data = [{
                 "page_content": chunk.page_content,
-                "metadata": chunk.metadata
+                "metadata": {**chunk.metadata, "source": abs_path}
             } for chunk in chunks]
 
             collection = self.chroma_client.get_or_create_collection(

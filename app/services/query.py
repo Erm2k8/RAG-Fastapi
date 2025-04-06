@@ -1,5 +1,5 @@
 from sentence_transformers import util
-from utils.pdf_processor import PDFProcessor
+from services.pdf_processor import PDFProcessor
 from core.database import DatabaseManager, QueryCache, Document
 from groq import Groq
 import os

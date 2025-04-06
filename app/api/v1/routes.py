@@ -4,7 +4,7 @@ import os
 from services.query import QueryService
 from .schemas import QueryRequest, ResponseModel
 from .dependencies import get_query_service
-from utils.pdf_processor import PDFProcessor
+from services.pdf_processor import PDFProcessor
 from core.database import DatabaseManager, Document
 
 router = APIRouter()

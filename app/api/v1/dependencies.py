@@ -1,5 +1,5 @@
 from services.query import QueryService
-from utils.pdf_processor import PDFProcessor
+from services.pdf_processor import PDFProcessor
 from core.database import DatabaseManager
 
 def get_query_service():
