@@ -21,7 +21,7 @@ async def handle_query(
     try:
         file_path = os.path.join("data", "documents", request.pdf_path)
         if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Arquivo PDF não encontrado")
+            raise HTTPException(status_code=404, detail="PDF file not found")
         
         return query_service.execute_query(
             pdf_path=file_path,
@@ -31,17 +31,18 @@ async def handle_query(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upload/")
-async def upload_file(file: UploadFile):
+async def upload_file(files: list[UploadFile]):
     try:
-        os.makedirs("data/documents", exist_ok=True)
-        file_path = os.path.join("data", "documents", file.filename)
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        processor = PDFProcessor()
-        processor.process(file_path)
+        for file in files:
+            os.makedirs("data/documents", exist_ok=True)
+            file_path = os.path.join("data", "documents", file.filename)
+            with open(file_path, "wb") as buffer:
+                content = await file.read()
+                buffer.write(content)
+            processor = PDFProcessor()
+            processor.process(file_path)
         return {
-            "filename": file.filename,
+            "filename": [file.filename for file in files],
             "saved_path": file_path,
             "status": "processed"
         }
@@ -54,7 +55,7 @@ async def repair_document(pdf_path: str):
         processor = PDFProcessor()
         abs_path = os.path.join("data", "documents", pdf_path)
         if not os.path.exists(abs_path):
-            raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+            raise HTTPException(status_code=404, detail="File not found")
         chunks, collection_name = processor.process(abs_path)
         return {
             "status": "repaired",
