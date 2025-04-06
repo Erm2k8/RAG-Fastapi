@@ -1,9 +1,11 @@
+from fastapi import APIRouter, HTTPException, File, UploadFile, Depends
+from typing import List
 import os
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
-from typing import Annotated
 from services.query import QueryService
 from .schemas import QueryRequest, ResponseModel
 from .dependencies import get_query_service
+from utils.pdf_processor import PDFProcessor
+from core.database import DatabaseManager, Document
 
 router = APIRouter()
 
@@ -17,20 +19,66 @@ async def handle_query(
     query_service: QueryService = Depends(get_query_service)
 ):
     try:
-        format_pdf_path = f'data/documents/{request.pdf_path}'
+        file_path = os.path.join("data", "documents", request.pdf_path)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Arquivo PDF não encontrado")
+        
         return query_service.execute_query(
-            pdf_path=format_pdf_path,
+            pdf_path=file_path,
             query=request.query
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/upload-multi-files/")
-async def create_upload_file(files: list[UploadFile]):
-    for file in files:
+@router.post("/upload/")
+async def upload_file(file: UploadFile):
+    try:
+        os.makedirs("data/documents", exist_ok=True)
         file_path = os.path.join("data", "documents", file.filename)
-        with open(file_path, "wb") as out_file:
+        with open(file_path, "wb") as buffer:
             content = await file.read()
-            out_file.write(content)
+            buffer.write(content)
+        processor = PDFProcessor()
+        processor.process(file_path)
+        return {
+            "filename": file.filename,
+            "saved_path": file_path,
+            "status": "processed"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    return {"files": [file.filename for file in files]}
+@router.post("/repair/")
+async def repair_document(pdf_path: str):
+    try:
+        processor = PDFProcessor()
+        abs_path = os.path.join("data", "documents", pdf_path)
+        if not os.path.exists(abs_path):
+            raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+        chunks, collection_name = processor.process(abs_path)
+        return {
+            "status": "repaired",
+            "collection": collection_name,
+            "chunks_processed": len(chunks)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/documents/")
+async def list_documents():
+    session = DatabaseManager().get_session()
+    try:
+        docs = session.query(Document).all()
+        return {
+            "documents": [
+                {
+                    "id": doc.id,
+                    "filename": os.path.basename(doc.file_path),
+                    "hash": doc.file_hash,
+                    "chunks": len(doc.chunks) if doc.chunks else 0
+                }
+                for doc in docs
+            ]
+        }
+    finally:
+        session.close()

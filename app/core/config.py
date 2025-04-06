@@ -1,0 +1,1 @@
+DOCUMENTS_DATABASE_URL = "sqlite:///./data/documents/documents.db"
